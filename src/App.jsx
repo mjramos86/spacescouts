@@ -10,9 +10,10 @@ import SurfaceCombat   from './screens/SurfaceCombat'
 import SpaceCombat     from './screens/SpaceCombat'
 import CharacterScreen from './screens/CharacterScreen'
 import RewardScreen    from './screens/RewardScreen'
+import LoadingScreen   from './screens/LoadingScreen'
 
 export default function App() {
-  const [screen, setScreen] = useState('hub')
+  const [screen, setScreen] = useState('loading')
   const [gs, setGs]         = useState(deepClone(INIT_STATE))
   const [result, setResult] = useState(null)
 
@@ -43,7 +44,8 @@ export default function App() {
   return (
     <div className="ss">
       <StarField />
-      <TopBar gs={gs} screen={screen} onBack={navBack} />
+      {screen === 'loading' && <LoadingScreen onReady={() => setScreen('hub')} />}
+      {screen !== 'loading' && <TopBar gs={gs} screen={screen} onBack={navBack} />}
 
       {screen === 'hub'       && <HubScreen       onNavigate={setScreen} gs={gs} />}
       {screen === 'surface'   && <SurfaceCombat   gs={gs} onComplete={handleCombatComplete} />}
