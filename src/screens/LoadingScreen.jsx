@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect } from 'react'
+
+const TOTAL_MS = 2800
 
 const BOOT_LINES = [
   'Initializing navigation systems...',
@@ -9,55 +11,15 @@ const BOOT_LINES = [
   'All systems nominal.',
 ]
 
-const DURATION = 2000 // ms to fill bar
-
 export default function LoadingScreen({ onReady }) {
-  const [progress,  setProgress]  = useState(0)
-  const [lineIdx,   setLineIdx]   = useState(0)
-  const [ready,     setReady]     = useState(false)
-  const [launching, setLaunching] = useState(false)
-  const launched = useRef(false)
-
-  const launch = () => {
-    if (launched.current) return
-    launched.current = true
-    setLaunching(true)
-    setTimeout(onReady, 500)
-  }
-
-  // Fixed-duration progress — no randomness, never stalls
+  // Single effect, single timeout — nothing can stall
   useEffect(() => {
-    const start = performance.now()
-    let raf
-
-    const tick = (now) => {
-      const elapsed = now - start
-      const pct = Math.min(100, (elapsed / DURATION) * 100)
-      setProgress(pct)
-      setLineIdx(Math.min(
-        BOOT_LINES.length - 1,
-        Math.floor((pct / 100) * BOOT_LINES.length),
-      ))
-      if (pct < 100) {
-        raf = requestAnimationFrame(tick)
-      } else {
-        setReady(true)
-      }
-    }
-
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [])
-
-  // Auto-advance 1.5 s after ready — user never gets stuck
-  useEffect(() => {
-    if (!ready) return
-    const t = setTimeout(launch, 1500)
+    const t = setTimeout(onReady, TOTAL_MS)
     return () => clearTimeout(t)
-  }, [ready]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [onReady])
 
   return (
-    <div className={`loading-screen${launching ? ' loading-exit' : ''}`}>
+    <div className="loading-screen">
       <div className="loading-inner">
         <div className="loading-logo">
           <div className="loading-title">SPACE SCOUTS</div>
@@ -67,8 +29,12 @@ export default function LoadingScreen({ onReady }) {
         <div className="loading-emblem">🚀</div>
 
         <div className="loading-boot">
-          {BOOT_LINES.slice(0, lineIdx + 1).map((line, i) => (
-            <div key={i} className={`boot-line${i === lineIdx ? ' boot-active' : ''}`}>
+          {BOOT_LINES.map((line, i) => (
+            <div
+              key={i}
+              className="boot-line"
+              style={{ animationDelay: `${i * 0.3}s` }}
+            >
               <span className="boot-prefix">{'>'}</span> {line}
             </div>
           ))}
@@ -77,21 +43,19 @@ export default function LoadingScreen({ onReady }) {
         <div className="loading-bar-wrap">
           <div className="loading-bar-label">
             <span>SYSTEM BOOT</span>
-            <span>{Math.round(progress)}%</span>
+            <span className="loading-pct">100%</span>
           </div>
           <div className="loading-bar-bg">
-            <div className="loading-bar-fill" style={{ width: `${progress}%` }} />
+            <div className="loading-bar-fill loading-bar-anim" />
           </div>
         </div>
 
-        <div className={`loading-btn-wrap${ready ? ' loading-btn-visible' : ''}`}>
-          <button className="btn btn-cyan loading-launch-btn" onClick={launch}>
-            ▶ LAUNCH MISSION
-          </button>
-          <div className="loading-lore">
-            Sector 7-Gamma · 3 contracts await · Wormhole stable
-          </div>
-        </div>
+        <button
+          className="btn btn-cyan loading-launch-btn loading-btn-appear"
+          onClick={onReady}
+        >
+          ▶ LAUNCH MISSION
+        </button>
       </div>
     </div>
   )
