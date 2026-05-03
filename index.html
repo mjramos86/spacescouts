@@ -5,12 +5,39 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Space Scouts</title>
-    <style>html,body{background:#02060f;margin:0}</style>
+    <style>
+      html,body{background:#02060f;margin:0}
+      #pre-load{
+        position:fixed;inset:0;display:flex;flex-direction:column;
+        align-items:center;justify-content:center;gap:24px;
+        background:#02060f;z-index:9999;
+        font-family:'Share Tech Mono',monospace,sans-serif;
+      }
+      #pre-load-title{
+        font-size:36px;font-weight:900;letter-spacing:.12em;
+        color:#00d4ff;text-shadow:0 0 40px rgba(0,212,255,.6);
+        font-family:'Orbitron','Share Tech Mono',monospace,sans-serif;
+      }
+      #pre-load-bar-bg{
+        width:280px;height:4px;background:#0b1628;border:1px solid #162a48;border-radius:2px;overflow:hidden;
+      }
+      #pre-load-bar{
+        height:100%;width:0;background:linear-gradient(90deg,#0088bb,#00d4ff);
+        border-radius:2px;animation:pre-fill 1.2s ease forwards;
+      }
+      @keyframes pre-fill{to{width:60%}}
+      #pre-load-sub{font-size:11px;color:#4a6888;letter-spacing:.15em;}
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <div id="pre-load">
+      <div id="pre-load-title">SPACE SCOUTS</div>
+      <div id="pre-load-bar-bg"><div id="pre-load-bar"></div></div>
+      <div id="pre-load-sub">LOADING...</div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
