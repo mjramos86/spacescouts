@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client'
 import './styles.css'
 import App from './App.jsx'
 
+document.getElementById('pre-load')?.remove()
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
