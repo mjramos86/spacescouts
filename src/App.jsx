@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { deepClone } from './utils'
 import { INIT_STATE } from './data'
-import CSS from './styles'
 
 import StarField       from './components/StarField'
 import TopBar          from './components/TopBar'
@@ -16,15 +15,6 @@ export default function App() {
   const [screen, setScreen] = useState('loading')
   const [gs, setGs]         = useState(deepClone(INIT_STATE))
   const [result, setResult] = useState(null)
-
-  // Inject global CSS
-  useEffect(() => {
-    const el = document.createElement('style')
-    el.id = 'ss-style'
-    el.textContent = CSS
-    document.head.appendChild(el)
-    return () => document.getElementById('ss-style')?.remove()
-  }, [])
 
   const handleCombatComplete = (r) => {
     setResult(r)
