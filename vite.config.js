@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// base: './' makes built asset URLs relative, so the app works when served from
-// any subpath (preview hosts, static folders) instead of only the domain root.
+// GitHub Pages serves this project site at https://<user>.github.io/spacescouts/,
+// so asset URLs must be prefixed with /spacescouts/. An absolute base resolves
+// correctly whether or not the visited URL has a trailing slash.
 export default defineConfig({
-  base: './',
+  base: '/spacescouts/',
   plugins: [react()],
 })
