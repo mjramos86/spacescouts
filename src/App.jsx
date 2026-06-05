@@ -1,49 +1,57 @@
-import { useState } from 'react'
-import { deepClone } from './utils'
-import { INIT_STATE } from './data'
+import { useState, useEffect, useCallback } from 'react'
+import { INIT_META, SAVE_KEY } from './data'
+import { loadMeta, saveMeta } from './game'
 
-import StarField       from './components/StarField'
-import TopBar          from './components/TopBar'
-import HubScreen       from './screens/HubScreen'
-import SurfaceCombat   from './screens/SurfaceCombat'
-import SpaceCombat     from './screens/SpaceCombat'
-import CharacterScreen from './screens/CharacterScreen'
-import RewardScreen    from './screens/RewardScreen'
-import LoadingScreen   from './screens/LoadingScreen'
+import StarField      from './components/StarField'
+import TopBar         from './components/TopBar'
+import LoadingScreen  from './screens/LoadingScreen'
+import StationScreen  from './screens/StationScreen'
+import RunScreen      from './screens/RunScreen'
+import SummaryScreen  from './screens/SummaryScreen'
 
 export default function App() {
   const [screen, setScreen] = useState('loading')
-  const [gs, setGs]         = useState(deepClone(INIT_STATE))
+  const [meta, setMeta]     = useState(() => loadMeta(SAVE_KEY, INIT_META))
   const [result, setResult] = useState(null)
+  const [newBest, setNewBest] = useState(false)
 
-  const handleCombatComplete = (r) => {
+  // persist meta whenever it changes
+  useEffect(() => { saveMeta(SAVE_KEY, meta) }, [meta])
+
+  const startRun = useCallback(() => {
+    setMeta((m) => ({ ...m, totalRuns: m.totalRuns + 1 }))
+    setResult(null)
+    setNewBest(false)
+    setScreen('run')
+  }, [])
+
+  const endRun = useCallback((r) => {
+    const best = r.reached > meta.bestDepth
+    setNewBest(best)
+    setMeta((m) => ({
+      ...m,
+      credits: m.credits + (r.creditsEarned || 0),
+      crystals: m.crystals + (r.reached >= 5 ? Math.floor(r.reached / 5) : 0),
+      bestDepth: Math.max(m.bestDepth, r.reached),
+      totalKills: m.totalKills + (r.kills || 0),
+    }))
     setResult(r)
-    if (r.victory) {
-      setGs(prev => ({
-        ...prev,
-        captain: { ...prev.captain, xp: prev.captain.xp + (r.xpGain || 0) },
-        ship:    { ...prev.ship,    xp: prev.ship.xp    + Math.floor((r.xpGain || 0) * 0.6) },
-        credits: prev.credits + (r.credits || 0),
-      }))
-    }
-    setScreen('reward')
-  }
-
-  const navBack = () => setScreen('hub')
+    setScreen('summary')
+  }, [meta.bestDepth])
 
   return (
     <div className="ss">
       <StarField />
-      {screen === 'loading' && <LoadingScreen onReady={() => setScreen('hub')} />}
-      {screen !== 'loading' && <TopBar gs={gs} screen={screen} onBack={navBack} />}
+      {screen === 'loading' && <LoadingScreen onReady={() => setScreen('station')} />}
+      {screen !== 'loading' && screen !== 'run' && (
+        <TopBar meta={meta} screen={screen} onBack={() => setScreen('station')} />
+      )}
 
-      {screen === 'hub'       && <HubScreen       onNavigate={setScreen} gs={gs} />}
-      {screen === 'surface'   && <SurfaceCombat   gs={gs} onComplete={handleCombatComplete} />}
-      {screen === 'space'     && <SpaceCombat      gs={gs} onComplete={handleCombatComplete} />}
-      {screen === 'character' && <CharacterScreen  gs={gs} />}
-      {screen === 'ship'      && <CharacterScreen  gs={gs} />}
-      {screen === 'crew'      && <CharacterScreen  gs={gs} />}
-      {screen === 'reward'    && <RewardScreen     result={result} onContinue={navBack} />}
+      {screen === 'station' && <StationScreen meta={meta} setMeta={setMeta} onJump={startRun} />}
+      {screen === 'run'     && <RunScreen meta={meta} onEnd={endRun} />}
+      {screen === 'summary' && (
+        <SummaryScreen result={result} meta={meta} newBest={newBest} onContinue={() => setScreen('station')} />
+      )}
     </div>
   )
 }

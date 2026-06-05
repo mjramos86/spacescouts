@@ -1,126 +1,169 @@
 // ══════════════════════════════════════════════════════════════════════════════
-// INITIAL GAME STATE
+// SPACE SCOUTS: WORMHOLE RUN — GAME DATA
+// ------------------------------------------------------------------------------
+// Same universe & story as the Space Scouts prototype, rebuilt around the
+// "Path of Kings" loop: an auto-running, auto-fighting dive where every kill
+// drops a gear card you SWIPE to equip or salvage. Sell for credits, spend
+// credits on permanent upgrades back at Frontier Station, dive deeper.
 // ══════════════════════════════════════════════════════════════════════════════
-export const INIT_STATE = {
-  captain: {
-    id: 'cap',
-    name: 'Cdr. Zara Voss',
-    cls: 'Vanguard',
-    level: 12,
-    hp: 180, maxHp: 180,
-    en: 80,  maxEn: 80,
-    atk: 45, def: 32, spd: 28, luck: 15,
-    xp: 3420, xpNext: 5000,
-    skills: [
-      { id: 's1', name: 'Power Strike', cost: 20, type: 'atk',  mult: 1.8,    desc: 'Melee burst — 180% ATK' },
-      { id: 's2', name: 'Tac-Shield',   cost: 25, type: 'def',  defMult: 2.5, desc: 'DEF ×2.5 for 1 turn' },
-      { id: 's3', name: 'Battle Cry',   cost: 30, type: 'buff', atkPct: 0.25, desc: 'Party ATK +25% (2 turns)' },
-    ],
-  },
-  robots: [
-    {
-      id: 'bolt', name: 'BOLT-7', arch: 'Tank-Bot', level: 8,
-      hp: 220, maxHp: 220, en: 60, maxEn: 60,
-      atk: 35, def: 55, spd: 18, luck: 8,
-      skills: [
-        { id: 'b1', name: 'Iron Bash',   cost: 15, type: 'atk', mult: 1.5,    desc: '150% ATK damage' },
-        { id: 'b2', name: 'Shield Wall', cost: 20, type: 'def', defMult: 3.0, desc: 'DEF ×3 for 1 turn' },
-      ],
-    },
-    {
-      id: 'lyra', name: 'LYRA-3', arch: 'Healer-Bot', level: 10,
-      hp: 120, maxHp: 120, en: 100, maxEn: 100,
-      atk: 20, def: 28, spd: 35, luck: 22,
-      skills: [
-        { id: 'l1', name: 'Nano-Repair', cost: 30, type: 'heal',   amount: 70, desc: 'Restore 70 HP to one ally' },
-        { id: 'l2', name: 'E-Surge',     cost: 25, type: 'healEn', amount: 40, desc: '+40 Energy to one ally' },
-      ],
-    },
-  ],
-  ship: {
-    name: 'ISS Renegade', type: 'Scout Frigate', level: 12,
-    hp: 320, maxHp: 320, shield: 100, maxShield: 100,
-    atk: 65, eva: 30, moveRange: 3,
-    xp: 4100, xpNext: 6000,
-    pos: { x: 1, y: 2 },
-    abilities: [
-      { id: 'a1', name: 'Plasma Burst',  dmgMult: 1.0, range: 2, maxCharges: 99, desc: 'Standard attack, range 2' },
-      { id: 'a2', name: 'Torpedo Salvo', dmgMult: 2.2, range: 4, maxCharges: 2,  desc: 'High damage, long range' },
-      { id: 'a3', name: 'Afterburner',   dmgMult: 0,   range: 0, maxCharges: 1,  isMove: true, moveBonus: 2, desc: '+2 Move this turn' },
-    ],
-    charges: { a1: 99, a2: 2, a3: 1 },
-  },
-  credits: 12450,
-  crystals: 120,
+
+// ── RARITY ────────────────────────────────────────────────────────────────────
+// Reuses the original loot palette. `mult` scales stat rolls, `affixes` is how
+// many stat lines a piece of gear of this rarity rolls, `weight` is drop odds.
+export const RARITY = {
+  common:    { name: 'COMMON',    col: '#8aa4c0', mult: 1.0,  affixes: 1, weight: 46, salvage: 18 },
+  uncommon:  { name: 'UNCOMMON',  col: '#44dd88', mult: 1.5,  affixes: 2, weight: 28, salvage: 40 },
+  rare:      { name: 'RARE',      col: '#4499ff', mult: 2.1,  affixes: 2, weight: 16, salvage: 90 },
+  epic:      { name: 'EPIC',      col: '#aa44ff', mult: 3.0,  affixes: 3, weight: 8,  salvage: 200 },
+  legendary: { name: 'LEGENDARY', col: '#ffc530', mult: 4.2,  affixes: 3, weight: 2,  salvage: 480 },
+}
+export const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary']
+
+// ── STAT KEYS ────────────────────────────────────────────────────────────────
+// Sci-fi mapping of Path of Kings' "health / armor / damage / etc."
+export const STAT_META = {
+  maxHp:       { label: 'HULL',     short: 'HP',  icon: '❤️', col: '#00e87a', kind: 'flat'  },
+  atk:         { label: 'DAMAGE',   short: 'DMG', icon: '⚔️', col: '#ff6644', kind: 'flat'  },
+  atkSpeed:    { label: 'FIRE RATE',short: 'SPD', icon: '⚡', col: '#ffcc00', kind: 'rate'  },
+  armor:       { label: 'ARMOR',    short: 'ARM', icon: '🛡️', col: '#88bbff', kind: 'flat'  },
+  maxShield:   { label: 'SHIELD',   short: 'SHD', icon: '🔷', col: '#4499ff', kind: 'flat'  },
+  shieldRegen: { label: 'SHD REGEN',short: 'RGN', icon: '🔋', col: '#22ccff', kind: 'flat'  },
+  crit:        { label: 'CRIT',     short: 'CRT', icon: '🎯', col: '#ff44aa', kind: 'pct'   },
+  lifesteal:   { label: 'LIFESTEAL',short: 'LFS', icon: '🩸', col: '#ff5577', kind: 'pct'   },
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// SURFACE ENEMIES
-// ══════════════════════════════════════════════════════════════════════════════
-export const SURFACE_ENEMIES = [
-  { id: 'e1', name: 'Crawler Drone', icon: '🤖', hp: 85,  maxHp: 85,  atk: 22, def: 12, spd: 22, xpVal: 80  },
-  { id: 'e2', name: 'Sentry Guard',  icon: '🛡️', hp: 145, maxHp: 145, atk: 35, def: 28, spd: 16, xpVal: 140 },
-]
+// ── CLASSES (playstyles: brutal warrior / swift rogue / dark mage) ─────────────
+export const CLASSES = {
+  vanguard: {
+    id: 'vanguard',
+    name: 'VANGUARD',
+    icon: '🪖',
+    captain: 'Cdr. Zara Voss',
+    blurb: 'Front-line bruiser. Heavy hull, crushing strikes, born to soak fire.',
+    base: { maxHp: 220, atk: 26, atkSpeed: 0.85, armor: 14, maxShield: 60, shieldRegen: 6, crit: 8, lifesteal: 0 },
+    ability: { id: 'powerstrike', name: 'POWER STRIKE', icon: '💥', cd: 8,
+      desc: 'Overload melee burst — 350% damage to current target.' },
+  },
+  ranger: {
+    id: 'ranger',
+    name: 'RANGER',
+    icon: '🛰️',
+    captain: 'Lt. Kade Ardent',
+    blurb: 'Swift scout. Blistering fire rate and precision crits, light on armor.',
+    base: { maxHp: 150, atk: 18, atkSpeed: 1.7, armor: 6, maxShield: 50, shieldRegen: 8, crit: 22, lifesteal: 0 },
+    ability: { id: 'rapidvolley', name: 'RAPID VOLLEY', icon: '🔥', cd: 7,
+      desc: 'Unload a 6-shot volley at blinding speed.' },
+  },
+  technomancer: {
+    id: 'technomancer',
+    name: 'TECHNOMANCER',
+    icon: '🌀',
+    captain: 'Dr. Iris Cael',
+    blurb: 'Dark-tech caster. Ion bursts and siphoning fields bend the void.',
+    base: { maxHp: 170, atk: 22, atkSpeed: 1.1, armor: 8, maxShield: 90, shieldRegen: 12, crit: 12, lifesteal: 8 },
+    ability: { id: 'ionnova', name: 'ION NOVA', icon: '☄️', cd: 9,
+      desc: 'Detonate an ion nova — 280% damage and overcharges your shield.' },
+  },
+}
+export const CLASS_ORDER = ['vanguard', 'ranger', 'technomancer']
 
-// ══════════════════════════════════════════════════════════════════════════════
-// SPACE ENEMIES
-// ══════════════════════════════════════════════════════════════════════════════
-export const SPACE_ENEMIES_INIT = [
-  { id: 'se1', name: 'Interceptor',    icon: '🛸', hp: 180, maxHp: 180, shield: 50,  maxShield: 50,  atk: 55, eva: 25, moveRange: 2, pos: { x: 7, y: 0 } },
-  { id: 'se2', name: 'Battle Cruiser', icon: '🚀', hp: 280, maxHp: 280, shield: 120, maxShield: 120, atk: 70, eva: 10, moveRange: 1, pos: { x: 6, y: 3 } },
-  { id: 'se3', name: 'Recon Probe',    icon: '🛰️', hp: 90,  maxHp: 90,  shield: 20,  maxShield: 20,  atk: 35, eva: 40, moveRange: 3, pos: { x: 7, y: 5 } },
-]
+// ── GEAR SLOTS ────────────────────────────────────────────────────────────────
+export const SLOTS = {
+  weapon: { id: 'weapon', name: 'WEAPON', icon: '🔫', pool: ['atk', 'crit', 'atkSpeed', 'lifesteal'] },
+  armor:  { id: 'armor',  name: 'PLATING', icon: '🧱', pool: ['maxHp', 'armor', 'shieldRegen'] },
+  core:   { id: 'core',   name: 'SHIELD CORE', icon: '🔷', pool: ['maxShield', 'shieldRegen', 'maxHp'] },
+  module: { id: 'module', name: 'MODULE', icon: '🧩', pool: ['atk', 'crit', 'maxHp', 'lifesteal', 'atkSpeed', 'armor'] },
+}
+export const SLOT_ORDER = ['weapon', 'armor', 'core', 'module']
 
-// ══════════════════════════════════════════════════════════════════════════════
-// SPACE COMBAT GRID
-// ══════════════════════════════════════════════════════════════════════════════
-export const GRID_W = 8
-export const GRID_H = 6
-
-// Zone type index per cell [row][col]
-export const ZONE_MAP = [
-  [0, 0, 1, 1, 0, 0, 3, 3],
-  [0, 2, 2, 0, 0, 5, 5, 3],
-  [0, 2, 0, 0, 6, 5, 0, 0],
-  [0, 0, 0, 4, 4, 0, 2, 0],
-  [3, 3, 0, 4, 0, 0, 2, 2],
-  [3, 0, 0, 0, 0, 1, 1, 0],
-]
-
-export const ZONES = {
-  0: { name: 'Open Space',    bg: 'transparent',            border: '#1a3a5a', fx: null },
-  1: { name: 'Nebula',        bg: 'rgba(110,20,220,.18)',   border: '#8833ff', fx: '+15% Evasion' },
-  2: { name: 'Asteroid Belt', bg: 'rgba(140,80,0,.20)',     border: '#cc8800', fx: '+10% Shield/turn' },
-  3: { name: 'Ion Storm',     bg: 'rgba(220,60,0,.18)',     border: '#ff5522', fx: '-20% Accuracy' },
-  4: { name: 'Gravity Well',  bg: 'rgba(0,50,200,.20)',     border: '#4466ff', fx: '-1 Move Range' },
-  5: { name: 'Debris Field',  bg: 'rgba(220,0,50,.18)',     border: '#ff2244', fx: '5% Max HP dmg/turn' },
-  6: { name: 'Objective',     bg: 'rgba(0,200,100,.20)',    border: '#00ff88', fx: 'Capture for bonus' },
+// Base roll value per stat (before rarity mult & depth scaling) when it appears.
+export const STAT_ROLL = {
+  maxHp:       { base: 22,  perDepth: 3.0  },
+  atk:         { base: 5,   perDepth: 0.9  },
+  atkSpeed:    { base: 0.12, perDepth: 0.004 },
+  armor:       { base: 4,   perDepth: 0.5  },
+  maxShield:   { base: 16,  perDepth: 2.2  },
+  shieldRegen: { base: 2,   perDepth: 0.18 },
+  crit:        { base: 4,   perDepth: 0.12 },
+  lifesteal:   { base: 3,   perDepth: 0.08 },
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// LOOT POOL
-// ══════════════════════════════════════════════════════════════════════════════
-export const LOOT_POOL = [
-  { name: 'Nano-Blade+1',      rar: 'uncommon',  col: '#44dd88', st: '+12 ATK' },
-  { name: 'Void Plating',      rar: 'rare',       col: '#4499ff', st: '+20 DEF' },
-  { name: 'Holo-Scope',        rar: 'rare',       col: '#4499ff', st: '+15% Accuracy' },
-  { name: 'Nebula Core',       rar: 'epic',       col: '#aa44ff', st: '+3 Move Range' },
-  { name: 'Echo Shield Mk.II', rar: 'epic',       col: '#aa44ff', st: '+50 Shield, Regen 5/turn' },
-  { name: 'APEX Cannon',       rar: 'legendary',  col: '#ffc530', st: '+35 ATK, +20% Crit' },
-  { name: 'Repair Kit',        rar: 'common',     col: '#888888', st: 'Restore 80 HP' },
-  { name: 'Ion Rounds',        rar: 'uncommon',   col: '#44dd88', st: '+8 ATK (3 battles)' },
+// Flavorful gear name fragments per slot (prefix + core noun).
+export const GEAR_NAMES = {
+  weapon: { pre: ['Plasma', 'Ion', 'Rail', 'Pulse', 'Nano', 'Void', 'Arc', 'Photon', 'Quark'],
+            noun: ['Carbine', 'Lance', 'Repeater', 'Blaster', 'Cannon', 'Blade', 'Driver'] },
+  armor:  { pre: ['Titan', 'Aegis', 'Composite', 'Reactive', 'Carbon', 'Adamant', 'Bulwark'],
+            noun: ['Plating', 'Carapace', 'Exo-Frame', 'Weave', 'Harness', 'Shell'] },
+  core:   { pre: ['Echo', 'Halo', 'Flux', 'Aurora', 'Bastion', 'Phase', 'Helios'],
+            noun: ['Shield Core', 'Barrier', 'Deflector', 'Field Node', 'Capacitor'] },
+  module: { pre: ['Quantum', 'Neural', 'Override', 'Cipher', 'Apex', 'Spectre', 'Warp'],
+            noun: ['Module', 'Matrix', 'Chip', 'Relay', 'Coprocessor', 'Augment'] },
+}
+
+// Named legendary keepsakes that nod to the original crew/ship.
+export const LEGENDARY_NAMES = {
+  weapon: 'APEX Cannon',
+  armor:  'Renegade Hull-Plate',
+  core:   'Echo Shield Mk.II',
+  module: 'BOLT-7 Combat Core',
+}
+
+// ── ENEMY ARCHETYPES (scale with depth) ───────────────────────────────────────
+// hp/atk are at depth 1; scaling applied in game.js. `rate` = attacks/sec.
+export const ENEMIES = [
+  { id: 'crawler', name: 'Crawler Drone', icon: '🤖', hp: 40,  atk: 8,  rate: 0.9, armor: 2,  bounty: 6  },
+  { id: 'probe',   name: 'Recon Probe',   icon: '🛰️', hp: 28,  atk: 6,  rate: 1.5, armor: 0,  bounty: 5  },
+  { id: 'sentry',  name: 'Sentry Guard',  icon: '🛡️', hp: 70,  atk: 12, rate: 0.7, armor: 8,  bounty: 9  },
+  { id: 'raptor',  name: 'Void Raptor',   icon: '👾', hp: 50,  atk: 14, rate: 1.1, armor: 3,  bounty: 8  },
+  { id: 'inter',   name: 'Interceptor',   icon: '🛸', hp: 60,  atk: 16, rate: 1.2, armor: 4,  bounty: 11 },
+  { id: 'brute',   name: 'Hive Brute',    icon: '🦂', hp: 110, atk: 18, rate: 0.6, armor: 10, bounty: 14 },
 ]
 
-// ══════════════════════════════════════════════════════════════════════════════
-// HUB PANELS
-// ══════════════════════════════════════════════════════════════════════════════
-export const HUB_PANELS = [
-  { id: 'character', icon: '🧑‍🚀', name: 'COMMAND BRIDGE', desc: 'Captain stats, equipment, talent tree',  badge: 'LV 12' },
-  { id: 'ship',      icon: '🚀',   name: 'HANGAR BAY',      desc: 'Ship stats, weapons, hull upgrades',    badge: 'LV 12' },
-  { id: 'crew',      icon: '🤖',   name: 'ROBOT WORKSHOP',  desc: 'Manage crew, modules, customization',   badge: '2 ACTIVE' },
-  { id: 'surface',   icon: '🪐',   name: 'MISSION CONTROL', desc: 'Launch surface combat mission',         badge: 'READY', active: true },
-  { id: 'space',     icon: '⚔️',   name: 'WORMHOLE JUMP',   desc: 'Launch space tactical combat',          badge: 'READY', active: true },
-  { id: 'market',    icon: '🏪',   name: 'GALACTIC MARKET', desc: 'Buy, sell and trade equipment',          badge: '3 NEW' },
-  { id: 'workshop',  icon: '⚙️',   name: 'WORKSHOP',        desc: 'Salvage, craft, upgrade gear',           badge: 'OPEN' },
-  { id: 'lounge',    icon: '🌌',   name: "OFFICER'S LOUNGE",desc: 'Codex, achievements, leaderboards',     badge: 'CODEX' },
+// Bosses appear at every BOSS_INTERVAL depths. Tougher, slower, big bounty.
+export const BOSSES = [
+  { id: 'tyrant',  name: 'Hive Tyrant',      icon: '🐲', hp: 320, atk: 30, rate: 0.8, armor: 14, bounty: 90  },
+  { id: 'dread',   name: 'Iron Dreadnought', icon: '🛸', hp: 420, atk: 26, rate: 0.6, armor: 22, bounty: 120 },
+  { id: 'devour',  name: 'The Devourer',     icon: '🦑', hp: 560, atk: 38, rate: 0.7, armor: 18, bounty: 160 },
+  { id: 'warden',  name: 'Void Warden',      icon: '👁️', hp: 700, atk: 44, rate: 0.9, armor: 26, bounty: 220 },
 ]
+export const BOSS_INTERVAL = 5
+
+// ── ZONES (themed sectors you dive through, re-skin of POK's biomes) ───────────
+export const ZONES = [
+  { name: 'ASTEROID DRIFT',   from: 1,  tint: 'rgba(140,90,0,.10)',   accent: '#cc8800' },
+  { name: 'DERELICT ARMADA',  from: 6,  tint: 'rgba(40,80,140,.12)',  accent: '#4488cc' },
+  { name: 'NEBULA REACH',     from: 11, tint: 'rgba(110,20,220,.12)', accent: '#aa44ff' },
+  { name: 'ION STORM FRONT',  from: 16, tint: 'rgba(220,60,0,.12)',   accent: '#ff5522' },
+  { name: "DEVOURER'S MAW",   from: 21, tint: 'rgba(180,0,40,.14)',   accent: '#ff2244' },
+  { name: 'THE DEEP VOID',    from: 26, tint: 'rgba(0,40,90,.16)',    accent: '#00d4ff' },
+]
+
+// ── PERMANENT UPGRADES (Frontier Station meta-progression) ─────────────────────
+// `apply` mutates a base-stat object. cost(level) is credits for the NEXT level.
+export const UPGRADES = [
+  { id: 'hull',    name: 'Hull Plating',      icon: '🧱', max: 10, desc: '+24 max Hull per level',
+    cost: (l) => 120 + l * 110, apply: (b, l) => { b.maxHp += 24 * l } },
+  { id: 'weapon',  name: 'Weapon Calibration',icon: '⚔️', max: 10, desc: '+4 base Damage per level',
+    cost: (l) => 140 + l * 130, apply: (b, l) => { b.atk += 4 * l } },
+  { id: 'reactor', name: 'Reactor Core',      icon: '🔷', max: 8,  desc: '+18 Shield & +2 regen per level',
+    cost: (l) => 130 + l * 120, apply: (b, l) => { b.maxShield += 18 * l; b.shieldRegen += 2 * l } },
+  { id: 'servos',  name: 'Overclocked Servos',icon: '⚡', max: 8,  desc: '+6% Fire Rate per level',
+    cost: (l) => 160 + l * 160, apply: (b, l) => { b.atkSpeed *= (1 + 0.06 * l) } },
+  { id: 'targeting',name:'Targeting Matrix',  icon: '🎯', max: 8,  desc: '+3% Crit per level',
+    cost: (l) => 150 + l * 140, apply: (b, l) => { b.crit += 3 * l } },
+  { id: 'salvage', name: 'Salvage Drone',     icon: '💰', max: 6,  desc: '+12% salvage credits per level',
+    cost: (l) => 180 + l * 200, apply: null /* handled in game.js salvageValue */ },
+]
+
+// ── INITIAL PERSISTENT META STATE (saved to localStorage) ──────────────────────
+export const INIT_META = {
+  credits: 0,
+  crystals: 0,
+  cls: 'vanguard',
+  upgrades: { hull: 0, weapon: 0, reactor: 0, servos: 0, targeting: 0, salvage: 0 },
+  bestDepth: 0,
+  totalRuns: 0,
+  totalKills: 0,
+}
+
+export const SAVE_KEY = 'spacescouts.wormholerun.v1'
