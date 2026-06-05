@@ -40,5 +40,21 @@
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Fallback: if React hasn't mounted after 5 seconds, show a diagnostic
+      setTimeout(function() {
+        var preload = document.getElementById('pre-load');
+        if (preload && preload.parentNode) {
+          preload.innerHTML =
+            '<div style="color:#ff3355;font-family:monospace;font-size:13px;max-width:500px;text-align:center;padding:20px;line-height:1.8">' +
+            '<div style="color:#00d4ff;font-size:20px;font-weight:900;margin-bottom:12px">SPACE SCOUTS</div>' +
+            '<b>App failed to start.</b><br/>' +
+            'Open the browser Console (F12) to see the error.<br/><br/>' +
+            '<div style="color:#4a6888;font-size:11px">Common causes: JS blocked, network error, or missing build step</div>' +
+            '<br/><button onclick="location.reload(true)" style="background:#00d4ff;color:#000;border:none;padding:8px 20px;cursor:pointer;font-family:monospace;font-weight:bold">HARD REFRESH</button>' +
+            '</div>';
+        }
+      }, 5000);
+    </script>
   </body>
 </html>
