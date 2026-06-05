@@ -1,18 +1,17 @@
 import { useEffect } from 'react'
 
-const TOTAL_MS = 2800
+const TOTAL_MS = 2600
 
 const BOOT_LINES = [
-  'Initializing navigation systems...',
-  'Calibrating wormhole drive...',
-  'Loading star charts for Sector 7-Gamma...',
-  'Syncing crew manifest...',
-  'Arming weapon systems...',
-  'All systems nominal.',
+  'Spinning up wormhole drive...',
+  'Plotting blind jump into uncharted space...',
+  'Arming auto-targeting combat systems...',
+  'Loading salvage & gear-card protocols...',
+  'Syncing crew: BOLT-7, LYRA-3...',
+  'All systems nominal. The void is waiting.',
 ]
 
 export default function LoadingScreen({ onReady }) {
-  // Single effect, single timeout — nothing can stall
   useEffect(() => {
     const t = setTimeout(onReady, TOTAL_MS)
     return () => clearTimeout(t)
@@ -23,18 +22,14 @@ export default function LoadingScreen({ onReady }) {
       <div className="loading-inner">
         <div className="loading-logo">
           <div className="loading-title">SPACE SCOUTS</div>
-          <div className="loading-sub">FRONTIER COMMAND · PROTOTYPE v0.1</div>
+          <div className="loading-sub">WORMHOLE RUN · FRONTIER COMMAND</div>
         </div>
 
-        <div className="loading-emblem">🚀</div>
+        <div className="loading-emblem">🌀</div>
 
         <div className="loading-boot">
           {BOOT_LINES.map((line, i) => (
-            <div
-              key={i}
-              className="boot-line"
-              style={{ animationDelay: `${i * 0.3}s` }}
-            >
+            <div key={i} className="boot-line" style={{ animationDelay: `${i * 0.3}s` }}>
               <span className="boot-prefix">{'>'}</span> {line}
             </div>
           ))}
@@ -42,7 +37,7 @@ export default function LoadingScreen({ onReady }) {
 
         <div className="loading-bar-wrap">
           <div className="loading-bar-label">
-            <span>SYSTEM BOOT</span>
+            <span>WORMHOLE SPIN-UP</span>
             <span className="loading-pct">100%</span>
           </div>
           <div className="loading-bar-bg">
@@ -50,11 +45,8 @@ export default function LoadingScreen({ onReady }) {
           </div>
         </div>
 
-        <button
-          className="btn btn-cyan loading-launch-btn loading-btn-appear"
-          onClick={onReady}
-        >
-          ▶ LAUNCH MISSION
+        <button className="btn btn-cyan loading-launch-btn loading-btn-appear" onClick={onReady}>
+          ⟫ ENTER STATION
         </button>
       </div>
     </div>
