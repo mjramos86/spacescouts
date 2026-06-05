@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-const TOTAL_MS = 2600
+const TOTAL_MS = 2000
 
 const BOOT_LINES = [
   'Spinning up wormhole drive...',
@@ -45,7 +45,11 @@ export default function LoadingScreen({ onReady }) {
           </div>
         </div>
 
-        <button className="btn btn-cyan loading-launch-btn loading-btn-appear" onClick={onReady}>
+        <button
+          className="btn btn-cyan loading-launch-btn"
+          style={{ opacity: 1, animation: 'none' }}
+          onClick={onReady}
+        >
           ⟫ ENTER STATION
         </button>
       </div>
